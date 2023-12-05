@@ -36,10 +36,11 @@ double cloudA1 = 30, cloudA2 = 60, cloudA3 = 345;
 int starA4 = 0;
 double playerX = 6 * B_SIZE + 8, playerY = 2 * B_SIZE;
 bool rightPressed = false, leftPressed = false;
+bool onGround = true;
 
 // Level class defines
 
-Level level1;  // First Level
+Level level1(384, 256);  // First Level
 
 // Drawing of the cloud beginning
 void cloud_start(double &x, double y, bool cloud) {
@@ -205,7 +206,8 @@ void draw_hill(int x, int y) {
   draw_hill_scenery(x, y + 25);
 }
 
-// 5 point rotating star, where r represents the radius of the star to the surrounding
+// 5 point rotating star, where r represents the radius of the star to the
+// surrounding
 void draw_star(double x, double y, double r) {
   glColor3ub(PLAYER_RED);
 
@@ -243,7 +245,8 @@ void display(void) {
   glClear(GL_COLOR_BUFFER_BIT);
   glLoadIdentity();
 
-  // Background done using a rectangle to use HEX colors (The other way doesn't allow for colors)
+  // Background done using a rectangle to use HEX colors (The other way doesn't
+  // allow for colors)
   glColor3ub(SKY_BLUE);
   glRectd(0, 0, 383, 255);
 
@@ -274,48 +277,43 @@ void display(void) {
   glutSwapBuffers();
 }
 
-double moveStateX = 0; // moving state, represents acceleration in the x-direction
+double moveStateX = 0;  // moving state, represents movement in the x-direction
+double moveStateY = 0;  // moving state, represents movement in the y-direction
 
 void timer(int) {
-  glutPostRedisplay();
-  glutTimerFunc(1000 / 60, timer, 0);
-  // Recalling the function
-
   // Clouds move at seperate speeds
   cloudA1 < 400 ? cloudA1 += 0.1 : cloudA1 = -100;
   cloudA2 < 400 ? cloudA2 += 0.2 : cloudA2 = -100;
   cloudA3 < 400 ? cloudA3 += 0.1 : cloudA3 = -100;
   starA4 = (starA4 + 1) % 360;
 
-  // if(cloudA2 >= 150 && cloudA2 < 250){
-  //     blockA4 = 5 * B_SIZE + sin((cloudA2 - 150)/50 * (M_PI / 2)) * B_SIZE;
-  // }
+  if (level1.check_left()) {
+    rightPressed = false;
+    moveStateX = 0;
+  }
+  if(level1.check_right()){
+    leftPressed = false;
+    moveStateX = 0;
+  }
+  printf("%d\n", level1.check_left());
+  printf("%lf\n", moveStateX);
 
-
-  // Acceleration of moveStateX according to direction of movement
-  if (rightPressed & !leftPressed) {
+  if ((!rightPressed && !leftPressed || leftPressed && rightPressed) &&
+      moveStateX != 0) {
+    moveStateX = moveStateX > 0 ? max(moveStateX - 0.5, 0.0)
+                                : min(moveStateX + 0.5, 0.0);
+  } else if (rightPressed) {
     moveStateX = min(moveStateX + 0.5, 10.0);
-  } else if (leftPressed & !rightPressed) {
+  } else if (leftPressed){
     moveStateX = max(moveStateX - 0.5, -10.0);
   }
 
-  // These conditions check for collisions to stop continuous movement, right now the cost is equivalent to the number of blocks
-  if (playerX < 0 || level1.check_right()) {  // expensive call
-    leftPressed = false;
-    moveStateX = max(moveStateX, 0.0);
-  } else if (playerX > 384 - 12 || level1.check_left()) {  // expensive call
-    rightPressed = false;
-    moveStateX = min(moveStateX, 0.0);
-  } 
-  
-  // Movement of player in x-direction
-  playerX += 0.2 * moveStateX;
+    playerX += 0.2 * moveStateX;
+  playerY += 0.2 * moveStateY;
 
-  // Slow decceleration of player if no key is pressed
-  if (!leftPressed && !rightPressed) {
-    moveStateX = moveStateX > 0 ? max(moveStateX - 0.5, 0.0)
-                                : min(moveStateX + 0.5, 0.0);
-  }
+  // Recalling the function
+  glutPostRedisplay();
+  glutTimerFunc(15, timer, 0);
 }
 
 // Handles reshape of window
@@ -332,27 +330,19 @@ void reshape(int w, int h) {
 void handle_movement(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
-      // printf("%c", level1.check_left());
-      if (playerX + 2 < 384 - 12)
-        rightPressed = true;
-      else
-        rightPressed = false;
+      rightPressed = true;
       break;
     case GLUT_KEY_LEFT:
-      if (playerX - 2 > 0)
-        leftPressed = true;
-      else
-        leftPressed = false;
+      leftPressed = true;
       break;
   }
 }
 
-// Handles buttons releases 
+// Handles buttons releases
 void handle_no_movement(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
       rightPressed = false;
-
       break;
     case GLUT_KEY_LEFT:
       leftPressed = false;
@@ -382,10 +372,9 @@ int main(int argc, char **argv) {
     level1.add_block(new SurfaceBlock(i, B_SIZE * 1));
   }
   // testing blocks {
-    level1.add_block(new SurfaceBlock(18 * B_SIZE - 8, B_SIZE * 2));
-    // level1.add_block(new SurfaceBlock(5 * B_SIZE, B_SIZE * 2));
+  level1.add_block(new SurfaceBlock(18 * B_SIZE - 8, B_SIZE * 2));
+  level1.add_block(new SurfaceBlock(5 * B_SIZE, B_SIZE * 2));
   // }
-
 
   level1.add_block(new LuckyBlock(10 * B_SIZE - 8, B_SIZE * 5));
 

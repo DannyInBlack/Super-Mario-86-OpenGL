@@ -4,9 +4,9 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #ifdef __linux__
-#else 
-    #include <stdlib.h>
-    #include <windows.h>
+#else
+#include <stdlib.h>
+#include <windows.h>
 #endif
 
 #include <algorithm>
@@ -27,17 +27,13 @@ class Entity : public Renderable {
   Entity(double l, double r, double u, double b)
       : left(l), right(r), up(u), bottom(b){};
 
-    double get_right(){
-        return right;
-    }
+  double get_right() { return right; }
 
-    double get_left(){
-        return left;
-    }
+  double get_left() { return left; }
 
-    double get_up(){
-        return up;
-    }
+  double get_up() { return up; }
+
+  double get_bottom() { return bottom; }
 
   virtual void render(){};
 };
@@ -48,7 +44,7 @@ class Player : public Entity {
 
   Player(double x, double y) : Entity(x, x + 12, y + 16, y) {}
 
-  void set_player_xy(double posX, double posY){
+  void set_player_xy(double posX, double posY) {
     Entity::left = posX;
     Entity::right = posX + 12;
     Entity::bottom = posY;

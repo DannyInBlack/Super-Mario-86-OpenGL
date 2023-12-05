@@ -2,9 +2,9 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #ifdef __linux__
-#else 
-    #include <stdlib.h>
-    #include <windows.h>
+#else
+#include <stdlib.h>
+#include <windows.h>
 #endif
 
 #include <iostream>
@@ -30,17 +30,9 @@ class Block : public Renderable {
     this->x = x;
     this->y = y;
   }
-  bool left_collision(double right, double up){
-    if((up <= y + 16 && up >= y) || (up > y + 16 && up - 16 < y + 16))
-        return (right >= x - 1) && (right <= x + 16);
-    return false;
-  }
+  double getX(){ return x;}
 
-  bool right_collision(double left, double up){
-    if((up <= y + 16 && up >= y) || (up > y + 16 && up - 16 < y + 16))
-        return (left <= x + 17) && (left > x);
-    return false;
-  }
+  double getY(){ return y;}
 
   virtual void render() {}
 
@@ -86,40 +78,40 @@ class SurfacePlatformBlock : public PlatformBlock {
 };
 
 class SurfaceBlock : public Block {
-    public:
-    SurfaceBlock(double x, double y) : Block(x, y){}
+ public:
+  SurfaceBlock(double x, double y) : Block(x, y) {}
 
-    void render(){
-        glColor3ub(BROWN);
-        glRectd(x, y, x + 16, y + 16);
-        glColor3ub(WHITE);
-        glRectd(x + 1, y + 4, x + 2, y + 5);
-        glRectd(x + 2, y + 3, x + 4, y + 4);
-        glRectd(x + 4, y + 2, x + 7, y + 3);
-        glRectd(x, y + 1, x + 1, y + 5);
-        glRectd(x, y + 6, x + 1, y + 15);
-        glRectd(x + 1, y + 15, x + 9, y + 16);
-        glRectd(x + 11, y + 15, x + 15, y + 16);
-        glRectd(x + 10, y + 15, x + 11, y + 11);
-        glRectd(x + 11, y + 9, x + 15, y + 10);
-        glRectd(x + 10, y + 10, x + 11, y + 6);
-        glRectd(x + 9, y + 6, x + 10, y + 4);
-        glRectd(x + 8, y + 4, x + 9, y);
-        glColor3ub(BLACK);
-        glRectd(x + 1, y, x + 7, y + 1);
-        glRectd(x, y + 5, x + 2, y + 6);
-        glRectd(x + 2, y + 4, x + 4, y + 5);
-        glRectd(x + 4, y + 3, x + 8, y + 4);
-        glRectd(x + 7, y + 3, x + 8, y + 1);
-        glRectd(x + 8, y + 4, x + 9, y + 6);
-        glRectd(x + 9, y + 6, x + 10, y + 16);
-        glRectd(x + 9, y, x + 15, y + 1);
-        glRectd(x + 14, y + 1, x + 16, y + 2);
-        glRectd(x + 15, y + 2, x + 16, y + 10);
-        glRectd(x + 15, y + 10, x + 11, y + 11);
-        glRectd(x + 15, y + 11, x + 16, y + 15);
-        glRectd(x + 11, y + 11, x + 12, y + 12);
-    }
+  void render() {
+    glColor3ub(BROWN);
+    glRectd(x, y, x + 16, y + 16);
+    glColor3ub(WHITE);
+    glRectd(x + 1, y + 4, x + 2, y + 5);
+    glRectd(x + 2, y + 3, x + 4, y + 4);
+    glRectd(x + 4, y + 2, x + 7, y + 3);
+    glRectd(x, y + 1, x + 1, y + 5);
+    glRectd(x, y + 6, x + 1, y + 15);
+    glRectd(x + 1, y + 15, x + 9, y + 16);
+    glRectd(x + 11, y + 15, x + 15, y + 16);
+    glRectd(x + 10, y + 15, x + 11, y + 11);
+    glRectd(x + 11, y + 9, x + 15, y + 10);
+    glRectd(x + 10, y + 10, x + 11, y + 6);
+    glRectd(x + 9, y + 6, x + 10, y + 4);
+    glRectd(x + 8, y + 4, x + 9, y);
+    glColor3ub(BLACK);
+    glRectd(x + 1, y, x + 7, y + 1);
+    glRectd(x, y + 5, x + 2, y + 6);
+    glRectd(x + 2, y + 4, x + 4, y + 5);
+    glRectd(x + 4, y + 3, x + 8, y + 4);
+    glRectd(x + 7, y + 3, x + 8, y + 1);
+    glRectd(x + 8, y + 4, x + 9, y + 6);
+    glRectd(x + 9, y + 6, x + 10, y + 16);
+    glRectd(x + 9, y, x + 15, y + 1);
+    glRectd(x + 14, y + 1, x + 16, y + 2);
+    glRectd(x + 15, y + 2, x + 16, y + 10);
+    glRectd(x + 15, y + 10, x + 11, y + 11);
+    glRectd(x + 15, y + 11, x + 16, y + 15);
+    glRectd(x + 11, y + 11, x + 12, y + 12);
+  }
 };
 
 class LuckyBlock : public Block {
