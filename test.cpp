@@ -308,7 +308,7 @@ void timer(int) {
     moveStateX = max(moveStateX - 0.5, -10.0);
   }
 
-    playerX += 0.2 * moveStateX;
+  playerX += 0.2 * moveStateX;
   playerY += 0.2 * moveStateY;
 
   // Recalling the function
