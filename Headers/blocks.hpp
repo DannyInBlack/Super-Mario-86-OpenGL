@@ -30,14 +30,11 @@ class Block : public Renderable {
     this->x = x;
     this->y = y;
   }
-  double getX(){ return x;}
+  double getX() { return x; }
 
-  double getY(){ return y;}
+  double getY() { return y; }
 
-  void move_block(double pos){
-    this->x = pos;
-    
-  }
+  void move_block(double pos) { this->x = pos; }
 
   virtual void render() {}
 

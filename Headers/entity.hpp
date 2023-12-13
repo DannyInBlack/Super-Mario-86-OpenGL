@@ -56,8 +56,6 @@ class Player : public Entity {
   void set_running_state(movement x) { state = x; }
 
   void render() {
-    
-
     switch (state) {
       case stopped:
         // HEAD
@@ -295,6 +293,6 @@ class Player : public Entity {
         glColor3ub(MUD);
         glRectd(right - 6, bottom + 8, right - 8, bottom + 9);
         break;
-    } 
+    }
   }
 };

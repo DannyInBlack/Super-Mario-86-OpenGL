@@ -1,8 +1,8 @@
+#include <GL/freeglut.h>
+#include <GL/freeglut_ext.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-#include <GL/freeglut.h>
-#include <GL/freeglut_ext.h>
 #ifdef __linux__
 #else
 #include <stdlib.h>
@@ -40,9 +40,11 @@ double playerX = 6 * B_SIZE + 8, playerY = 2 * B_SIZE;
 bool rightPressed = false, leftPressed = false, upPressed = false;
 bool onGround = true;
 bool paused = false;
+bool centered = false;
 double moveStateX = 0;  // moving state, represents movement in the x-direction
 double moveStateY = 0;  // moving state, represents movement in the y-direction
 double offset = 6 * B_SIZE + 8;
+
 
 // Level class defines
 
@@ -274,15 +276,15 @@ void display(void) {
   draw_hill(235, B_SIZE);
 
   // Rotation
-  draw_star(10 * B_SIZE, 6 * B_SIZE + 8, 3);
+  draw_star( 10 * B_SIZE, 6 * B_SIZE + 8, 3);
 
   // Mushrooms
 
   level1.render();
 
-  if(paused){
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  if (paused) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glColor4f(0, 0, 0, 0.5);
     glRectd(0, 0, 383, 255);
@@ -295,11 +297,10 @@ void display(void) {
   glutSwapBuffers();
 }
 
-
 void timer(int) {
   // Clouds move at seperate speeds
   glutPostRedisplay();
-  glutTimerFunc(1000/60, timer, 0);
+  glutTimerFunc(1000 / 60, timer, 0);
 
   if (paused) return;
 
@@ -308,32 +309,30 @@ void timer(int) {
   cloudA3 < 400 ? cloudA3 += 0.1 : cloudA3 = -100;
   starA4 = (starA4 + 1) % 360;
 
-  if(upPressed && onGround) moveStateY = 10.0;
+  if (upPressed && onGround) moveStateY = 10.0;
   offset = playerX;
 
   playerX += 0.2 * moveStateX;
 
   level1.edit_player(playerX, playerY);
 
-
-  if(level1.right_coll()){
+  if (level1.right_coll()) {
     moveStateX = 0;
     playerX = ceil(playerX);
     level1.edit_player(playerX, playerY);
     printf("RIGHT COLLISION: PLAYER X = %d\n", (int)playerX);
 
-    while(level1.right_coll()) {
+    while (level1.right_coll()) {
       playerX -= 1;
       level1.edit_player(playerX, playerY);
     }
-  }
-  else if(level1.left_coll()){
+  } else if (level1.left_coll()) {
     moveStateX = 0;
     playerX = floor(playerX);
     level1.edit_player(playerX, playerY);
     printf("LEFT COLLISION: PLAYER X = %d\n", (int)playerX);
 
-    while(level1.left_coll()) {
+    while (level1.left_coll()) {
       playerX += 1;
       level1.edit_player(playerX, playerY);
     }
@@ -353,54 +352,46 @@ void timer(int) {
     level1.set_player_state(stopped);
   }
 
-
   playerY += 0.3 * moveStateY;
   level1.edit_player(playerX, playerY);
 
-
-  if (level1.ground_coll()){
+  if (level1.ground_coll()) {
     moveStateY = 0;
     onGround = true;
     playerY = ceil(playerY);
     level1.edit_player(playerX, playerY);
     printf("GROUND COLLISION: PLAYER Y = %d\n", (int)playerY);
-    while(level1.ground_coll()){
+    while (level1.ground_coll()) {
       playerY += 1;
       level1.edit_player(playerX, playerY);
     }
-  }
-  else if(level1.upward_coll()){
+  } else if (level1.upward_coll()) {
     moveStateY = 0;
     playerY = floor(playerY);
     level1.edit_player(playerX, playerY);
     printf("UP COLLISION: PLAYER Y = %d\n", (int)playerY);
-    while(level1.upward_coll()){
+    while (level1.upward_coll()) {
       playerY -= 1;
       level1.edit_player(playerX, playerY);
     }
   }
 
-  if(!level1.future_ground_coll()){
+  if (!level1.future_ground_coll()) {
     onGround = 0;
   }
 
-  if(!onGround){
+  if (!onGround) {
     moveStateY = max(moveStateY - 0.2, -10.0);
   }
 
-  bool ok = playerX > 186;
-  if(!ok) ok |= !level1.check_border(offset - playerX);
+  if (!centered) centered |= playerX > 186;
+  else centered &= !level1.check_left_border(offset - playerX);
 
-  
-
-  if(ok){
+  if (centered) {
     level1.move_blocks(offset - playerX);
     playerX = offset;
     level1.edit_player(playerX, playerY);
-    
   }
-
-
 }
 
 // Handles reshape of window
@@ -439,10 +430,8 @@ void handle_no_movement(int key, int x, int y) {
     case GLUT_KEY_LEFT:
       leftPressed = false;
       break;
-
   }
 }
-
 
 void keyboard_movement(unsigned char key, int x, int y) {
   switch (key) {
@@ -473,12 +462,11 @@ void keyboard_no_movement(unsigned char key, int x, int y) {
   }
 }
 
-void on_mouse_click(int button, int state, int x, int y){
-  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+void on_mouse_click(int button, int state, int x, int y) {
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     paused = !paused;
   }
 }
-
 
 int main(int argc, char **argv) {
   glutInit(&argc, argv);
@@ -506,7 +494,7 @@ int main(int argc, char **argv) {
     level1.add_block(new SurfaceBlock(i, B_SIZE * 0));
     level1.add_block(new SurfaceBlock(i, B_SIZE * 1));
   }
-  
+
   level1.add_block(new LuckyBlock(10 * B_SIZE - 8, B_SIZE * 5));
 
   level1.add_block(new SurfacePlatformBlock(18 * B_SIZE - 8, 5 * B_SIZE));
