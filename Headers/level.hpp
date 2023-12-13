@@ -38,7 +38,7 @@ class Level {
     entities.push_back(unique_ptr<Entity>(entity));
   }
 
-  bool check_left() {
+  bool right_coll() {
     int x = player->get_right();
     int y1 = player->get_up();
     int y2 = player->get_bottom();
@@ -48,14 +48,28 @@ class Level {
     return taken[x + 1][y1] || taken[x + 1][y2];
   }
 
-  bool check_right() {
+  bool left_coll() {
     int x = player->get_left();
     int y1 = player->get_up();
     int y2 = player->get_bottom();
 
-    if(x == 0) return true;
-
     return taken[x - 1][y1] || taken[x - 1][y2];
+  }
+
+  bool ground_coll() {
+    int x1 = player->get_left();
+    int x2 = player->get_right();
+    int y = player->get_bottom();
+
+    return taken[x1][y - 1] || taken[x2][y - 1];
+  }
+
+  bool upward_coll() {
+    int x1 = player->get_left();
+    int x2 = player->get_right();
+    int y = player->get_up();
+
+    return taken[x1][y + 1] || taken[x2][y + 1];
   }
 
 

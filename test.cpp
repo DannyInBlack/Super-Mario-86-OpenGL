@@ -37,6 +37,9 @@ int starA4 = 0;
 double playerX = 6 * B_SIZE + 8, playerY = 2 * B_SIZE;
 bool rightPressed = false, leftPressed = false;
 bool onGround = true;
+bool paused = false;
+double moveStateX = 0;  // moving state, represents movement in the x-direction
+double moveStateY = 0;  // moving state, represents movement in the y-direction
 
 // Level class defines
 
@@ -274,29 +277,56 @@ void display(void) {
 
   level1.render();
 
+  if(paused){
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    glColor4f(0, 0, 0, 0.5);
+    glRectd(0, 0, 383, 255);
+
+    glColor3ub(CLOUD_WHITE);
+    glRectd(160, 80, 160 + 20, 180);
+    glRectd(200, 80, 200 + 20, 180);
+  }
+
   glutSwapBuffers();
 }
 
-double moveStateX = 0;  // moving state, represents movement in the x-direction
-double moveStateY = 0;  // moving state, represents movement in the y-direction
 
 void timer(int) {
   // Clouds move at seperate speeds
+  glutPostRedisplay();
+  glutTimerFunc(10, timer, 0);
+
+  if (paused) return;
+
   cloudA1 < 400 ? cloudA1 += 0.1 : cloudA1 = -100;
   cloudA2 < 400 ? cloudA2 += 0.2 : cloudA2 = -100;
   cloudA3 < 400 ? cloudA3 += 0.1 : cloudA3 = -100;
   starA4 = (starA4 + 1) % 360;
 
-  if (level1.check_left()) {
+  if (level1.right_coll()) {
     rightPressed = false;
     moveStateX = 0;
   }
-  if(level1.check_right()){
+  if (level1.left_coll()) {
     leftPressed = false;
     moveStateX = 0;
   }
-  printf("%d\n", level1.check_left());
+  if (level1.ground_coll() && moveStateY != 10.0){
+    moveStateY = 0;
+    playerY = round(playerY / B_SIZE) * B_SIZE;
+  } else {
+    moveStateY = max(moveStateY - 0.2, -10.0);
+  }
+  if(level1.upward_coll()){
+    moveStateY = min(moveStateY, 0.0);
+  }
+
+
+  printf("%lf\n", playerY);
   printf("%lf\n", moveStateX);
+  printf("%d\n", level1.ground_coll());
 
   if ((!rightPressed && !leftPressed || leftPressed && rightPressed) &&
       moveStateX != 0) {
@@ -304,16 +334,17 @@ void timer(int) {
                                 : min(moveStateX + 0.5, 0.0);
   } else if (rightPressed) {
     moveStateX = min(moveStateX + 0.5, 10.0);
-  } else if (leftPressed){
+  } else if (leftPressed) {
     moveStateX = max(moveStateX - 0.5, -10.0);
   }
 
-  playerX += 0.2 * moveStateX;
+
+
+  playerX += 0.15 * moveStateX;
   playerY += 0.2 * moveStateY;
 
   // Recalling the function
-  glutPostRedisplay();
-  glutTimerFunc(15, timer, 0);
+  
 }
 
 // Handles reshape of window
@@ -329,16 +360,18 @@ void reshape(int w, int h) {
 // Boolean variable used for smooth movement
 void handle_movement(int key, int x, int y) {
   switch (key) {
+    case GLUT_KEY_UP:
+      if (level1.ground_coll() && !paused) moveStateY = 10;
+      break;
     case GLUT_KEY_RIGHT:
-      rightPressed = true;
+      if (!level1.right_coll()) rightPressed = true;
       break;
     case GLUT_KEY_LEFT:
-      leftPressed = true;
+      if (!level1.left_coll()) leftPressed = true;
       break;
   }
 }
 
-// Handles buttons releases
 void handle_no_movement(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
@@ -347,8 +380,43 @@ void handle_no_movement(int key, int x, int y) {
     case GLUT_KEY_LEFT:
       leftPressed = false;
       break;
+
   }
 }
+
+
+void keyboard_movement(unsigned char key, int x, int y) {
+  switch (key) {
+    case 'w':
+      if (level1.ground_coll() && !paused) moveStateY = 10;
+      break;
+    case 'd':
+      if (!level1.right_coll()) rightPressed = true;
+      break;
+    case 'a':
+      if (!level1.left_coll()) leftPressed = true;
+      break;
+  }
+}
+
+// Handles buttons releases
+void keyboard_no_movement(unsigned char key, int x, int y) {
+  switch (key) {
+    case 'd':
+      rightPressed = false;
+      break;
+    case 'a':
+      leftPressed = false;
+      break;
+  }
+}
+
+void on_mouse_click(int button, int state, int x, int y){
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+    paused = !paused;
+  }
+}
+
 
 int main(int argc, char **argv) {
   glutInit(&argc, argv);
@@ -364,6 +432,9 @@ int main(int argc, char **argv) {
   glutTimerFunc(0, timer, 0);
   glutSpecialFunc(handle_movement);
   glutSpecialUpFunc(handle_no_movement);
+  glutKeyboardFunc(keyboard_movement);
+  glutKeyboardUpFunc(keyboard_no_movement);
+  glutMouseFunc(on_mouse_click);
 
   // Adding the level blocks
 
