@@ -42,13 +42,13 @@ class Player : public Entity {
  public:
   int state = 0;
 
-  Player(double x, double y) : Entity(x, x + 12, y + 16, y) {}
+  Player(double x, double y) : Entity(x, x + 11, y + 15, y) {}
 
   void set_player_xy(double posX, double posY) {
     Entity::left = posX;
-    Entity::right = posX + 12;
+    Entity::right = posX + 11;
     Entity::bottom = posY;
-    Entity::up = posY + 16;
+    Entity::up = posY + 15;
   }
 
   void render() {

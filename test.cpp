@@ -305,45 +305,77 @@ void timer(int) {
   cloudA3 < 400 ? cloudA3 += 0.1 : cloudA3 = -100;
   starA4 = (starA4 + 1) % 360;
 
-  if (level1.right_coll()) {
-    rightPressed = false;
-    moveStateX = 0;
-  }
-  if (level1.left_coll()) {
-    leftPressed = false;
-    moveStateX = 0;
-  }
-  if (level1.ground_coll() && moveStateY != 10.0){
-    moveStateY = 0;
-    playerY = round(playerY / B_SIZE) * B_SIZE;
-  } else {
-    moveStateY = max(moveStateY - 0.2, -10.0);
-  }
-  if(level1.upward_coll()){
-    moveStateY = min(moveStateY, 0.0);
-  }
+
+  playerX += 0.15 * moveStateX;
+  level1.edit_player(playerX, playerY);
 
 
-  printf("%lf\n", playerY);
-  printf("%lf\n", moveStateX);
-  printf("%d\n", level1.ground_coll());
+  if(level1.right_coll()){
+    moveStateX = 0;
+    playerX = ceil(playerX);
+    level1.edit_player(playerX, playerY);
+    printf("RIGHT COLLISION: PLAYER X = %.2lf PLAYER Y = %.2lf\n", playerX, playerY);
+
+    while(level1.right_coll()) {
+      playerX -= 1;
+      level1.edit_player(playerX, playerY);
+    }
+  }
+  else if(level1.left_coll()){
+    moveStateX = 0;
+    playerX = floor(playerX);
+    level1.edit_player(playerX, playerY);
+    printf("LEFT COLLISION: PLAYER X = %d\n", (int)playerX);
+
+    while(level1.left_coll()) {
+      playerX += 1;
+      level1.edit_player(playerX, playerY);
+    }
+  }
 
   if ((!rightPressed && !leftPressed || leftPressed && rightPressed) &&
       moveStateX != 0) {
     moveStateX = moveStateX > 0 ? max(moveStateX - 0.5, 0.0)
                                 : min(moveStateX + 0.5, 0.0);
-  } else if (rightPressed) {
+  } else if (rightPressed && !level1.future_right_coll()) {
     moveStateX = min(moveStateX + 0.5, 10.0);
-  } else if (leftPressed) {
+  } else if (leftPressed && !level1.future_left_coll()) {
     moveStateX = max(moveStateX - 0.5, -10.0);
   }
 
-
-
-  playerX += 0.15 * moveStateX;
   playerY += 0.2 * moveStateY;
+  level1.edit_player(playerX, playerY);
 
-  // Recalling the function
+
+  if (level1.ground_coll()){
+    moveStateY = 0;
+    onGround = true;
+    playerY = ceil(playerY);
+    level1.edit_player(playerX, playerY);
+    printf("GROUND COLLISION: PLAYER Y = %d\n", (int)playerY);
+    while(level1.ground_coll()){
+      playerY += 1;
+      level1.edit_player(playerX, playerY);
+    }
+  }
+  else if(level1.upward_coll()){
+    moveStateY = 0;
+    playerY = floor(playerY);
+    level1.edit_player(playerX, playerY);
+    printf("UP COLLISION: PLAYER Y = %d\n", (int)playerY);
+    while(level1.upward_coll()){
+      playerY -= 1;
+      level1.edit_player(playerX, playerY);
+    }
+  }
+
+  if(!level1.future_ground_coll()){
+    onGround = 0;
+  }
+
+  if(!onGround){
+    moveStateY = max(moveStateY - 0.2, -10.0);
+  }
   
 }
 
@@ -361,13 +393,16 @@ void reshape(int w, int h) {
 void handle_movement(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_UP:
-      if (level1.ground_coll() && !paused) moveStateY = 10;
+      if (onGround && !paused){
+        onGround = false;
+        moveStateY = 10.0;
+      }
       break;
     case GLUT_KEY_RIGHT:
-      if (!level1.right_coll()) rightPressed = true;
+      rightPressed = true;
       break;
     case GLUT_KEY_LEFT:
-      if (!level1.left_coll()) leftPressed = true;
+      leftPressed = true;
       break;
   }
 }
@@ -388,7 +423,10 @@ void handle_no_movement(int key, int x, int y) {
 void keyboard_movement(unsigned char key, int x, int y) {
   switch (key) {
     case 'w':
-      if (level1.ground_coll() && !paused) moveStateY = 10;
+      if (onGround && !paused){
+        onGround = false;
+        moveStateY = 10.0;
+      }
       break;
     case 'd':
       if (!level1.right_coll()) rightPressed = true;

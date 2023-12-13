@@ -45,6 +45,14 @@ class Level {
 
     if(x == 0) return true;
 
+    return taken[x][y1] || taken[x][y2];
+  }
+
+  bool future_right_coll() {
+    int x = player->get_right();
+    int y1 = player->get_up();
+    int y2 = player->get_bottom();
+
     return taken[x + 1][y1] || taken[x + 1][y2];
   }
 
@@ -53,10 +61,25 @@ class Level {
     int y1 = player->get_up();
     int y2 = player->get_bottom();
 
+    return taken[x][y1] || taken[x][y2];
+  }
+
+  bool future_left_coll() {
+    int x = player->get_left();
+    int y1 = player->get_up();
+    int y2 = player->get_bottom();
+
     return taken[x - 1][y1] || taken[x - 1][y2];
   }
 
   bool ground_coll() {
+    int x1 = player->get_left();
+    int x2 = player->get_right();
+    int y = player->get_bottom();
+    return taken[x1][y] || taken[x2][y];
+  }
+
+  bool future_ground_coll() {
     int x1 = player->get_left();
     int x2 = player->get_right();
     int y = player->get_bottom();
@@ -69,7 +92,7 @@ class Level {
     int x2 = player->get_right();
     int y = player->get_up();
 
-    return taken[x1][y + 1] || taken[x2][y + 1];
+    return taken[x1][y] || taken[x2][y];
   }
 
 
