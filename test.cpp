@@ -1,6 +1,8 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include <GL/freeglut.h>
+#include <GL/freeglut_ext.h>
 #ifdef __linux__
 #else
 #include <stdlib.h>
@@ -35,11 +37,12 @@ using namespace std;
 double cloudA1 = 30, cloudA2 = 60, cloudA3 = 345;
 int starA4 = 0;
 double playerX = 6 * B_SIZE + 8, playerY = 2 * B_SIZE;
-bool rightPressed = false, leftPressed = false;
+bool rightPressed = false, leftPressed = false, upPressed = false;
 bool onGround = true;
 bool paused = false;
 double moveStateX = 0;  // moving state, represents movement in the x-direction
 double moveStateY = 0;  // moving state, represents movement in the y-direction
+double offset = 6 * B_SIZE + 8;
 
 // Level class defines
 
@@ -256,7 +259,7 @@ void display(void) {
   // level1.clear_entities();
 
   // Moving the player left and right
-  level1.edit_player(playerX, playerY);
+  // level1.edit_player(playerX, playerY);
 
   // Clouds
   draw_fuzz(cloudA1, 200, 3, true);
@@ -296,7 +299,7 @@ void display(void) {
 void timer(int) {
   // Clouds move at seperate speeds
   glutPostRedisplay();
-  glutTimerFunc(10, timer, 0);
+  glutTimerFunc(1000/60, timer, 0);
 
   if (paused) return;
 
@@ -305,8 +308,11 @@ void timer(int) {
   cloudA3 < 400 ? cloudA3 += 0.1 : cloudA3 = -100;
   starA4 = (starA4 + 1) % 360;
 
+  if(upPressed && onGround) moveStateY = 10.0;
+  offset = playerX;
 
-  playerX += 0.15 * moveStateX;
+  playerX += 0.2 * moveStateX;
+
   level1.edit_player(playerX, playerY);
 
 
@@ -314,7 +320,7 @@ void timer(int) {
     moveStateX = 0;
     playerX = ceil(playerX);
     level1.edit_player(playerX, playerY);
-    printf("RIGHT COLLISION: PLAYER X = %.2lf PLAYER Y = %.2lf\n", playerX, playerY);
+    printf("RIGHT COLLISION: PLAYER X = %d\n", (int)playerX);
 
     while(level1.right_coll()) {
       playerX -= 1;
@@ -339,11 +345,16 @@ void timer(int) {
                                 : min(moveStateX + 0.5, 0.0);
   } else if (rightPressed && !level1.future_right_coll()) {
     moveStateX = min(moveStateX + 0.5, 10.0);
+    level1.set_player_state(runRight1);
   } else if (leftPressed && !level1.future_left_coll()) {
-    moveStateX = max(moveStateX - 0.5, -10.0);
+    moveStateX = max(moveStateX - 0.6, -10.0);
+    level1.set_player_state(runLeft1);
+  } else {
+    level1.set_player_state(stopped);
   }
 
-  playerY += 0.2 * moveStateY;
+
+  playerY += 0.3 * moveStateY;
   level1.edit_player(playerX, playerY);
 
 
@@ -376,7 +387,20 @@ void timer(int) {
   if(!onGround){
     moveStateY = max(moveStateY - 0.2, -10.0);
   }
+
+  bool ok = playerX > 186;
+  if(!ok) ok |= !level1.check_border(offset - playerX);
+
   
+
+  if(ok){
+    level1.move_blocks(offset - playerX);
+    playerX = offset;
+    level1.edit_player(playerX, playerY);
+    
+  }
+
+
 }
 
 // Handles reshape of window
@@ -384,7 +408,7 @@ void reshape(int w, int h) {
   glViewport(0, 0, (GLsizei)w, (GLsizei)h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0, 383, 0, 255);  // (24 * 16, 16 * 16)
+  gluOrtho2D(0.0, 383.0, 0.0, 255.0);  // (24 * 16, 16 * 16)
   glMatrixMode(GL_MODELVIEW);
 }
 
@@ -393,10 +417,7 @@ void reshape(int w, int h) {
 void handle_movement(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_UP:
-      if (onGround && !paused){
-        onGround = false;
-        moveStateY = 10.0;
-      }
+      upPressed = true;
       break;
     case GLUT_KEY_RIGHT:
       rightPressed = true;
@@ -409,6 +430,9 @@ void handle_movement(int key, int x, int y) {
 
 void handle_no_movement(int key, int x, int y) {
   switch (key) {
+    case GLUT_KEY_UP:
+      upPressed = false;
+      break;
     case GLUT_KEY_RIGHT:
       rightPressed = false;
       break;
@@ -423,16 +447,13 @@ void handle_no_movement(int key, int x, int y) {
 void keyboard_movement(unsigned char key, int x, int y) {
   switch (key) {
     case 'w':
-      if (onGround && !paused){
-        onGround = false;
-        moveStateY = 10.0;
-      }
+      upPressed = true;
       break;
     case 'd':
-      if (!level1.right_coll()) rightPressed = true;
+      rightPressed = true;
       break;
     case 'a':
-      if (!level1.left_coll()) leftPressed = true;
+      leftPressed = true;
       break;
   }
 }
@@ -440,6 +461,9 @@ void keyboard_movement(unsigned char key, int x, int y) {
 // Handles buttons releases
 void keyboard_no_movement(unsigned char key, int x, int y) {
   switch (key) {
+    case 'w':
+      upPressed = false;
+      break;
     case 'd':
       rightPressed = false;
       break;
@@ -474,17 +498,15 @@ int main(int argc, char **argv) {
   glutKeyboardUpFunc(keyboard_no_movement);
   glutMouseFunc(on_mouse_click);
 
+  // glClearColor(161 / 253, 173 / 253, 255 / 253, 1);
+
   // Adding the level blocks
 
-  for (int i = -8, j = 0; j < 25; i += B_SIZE, j++) {
+  for (int i = -8, j = 0; j < 50; i += B_SIZE, j++) {
     level1.add_block(new SurfaceBlock(i, B_SIZE * 0));
     level1.add_block(new SurfaceBlock(i, B_SIZE * 1));
   }
-  // testing blocks {
-  level1.add_block(new SurfaceBlock(18 * B_SIZE - 8, B_SIZE * 2));
-  level1.add_block(new SurfaceBlock(5 * B_SIZE, B_SIZE * 2));
-  // }
-
+  
   level1.add_block(new LuckyBlock(10 * B_SIZE - 8, B_SIZE * 5));
 
   level1.add_block(new SurfacePlatformBlock(18 * B_SIZE - 8, 5 * B_SIZE));

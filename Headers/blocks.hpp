@@ -34,6 +34,11 @@ class Block : public Renderable {
 
   double getY(){ return y;}
 
+  void move_block(double pos){
+    this->x = pos;
+    
+  }
+
   virtual void render() {}
 
   void print_coordinates() { printf("(%lf, %lf)\n", x, y); }
