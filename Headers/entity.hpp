@@ -1,18 +1,5 @@
 #pragma once
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#ifdef __linux__
-#else
-#include <stdlib.h>
-#include <windows.h>
-#endif
-
-#include <algorithm>
-#include <iostream>
-#include <utility>
-
 #include "render.hpp"
 
 #define MUD 153, 131, 11

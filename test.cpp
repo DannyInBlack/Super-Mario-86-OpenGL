@@ -1,15 +1,3 @@
-#include <GL/freeglut.h>
-#include <GL/freeglut_ext.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#ifdef __linux__
-#else
-#include <stdlib.h>
-#include <windows.h>
-#endif
-#include <cmath>
-
 #include "Headers/level.hpp"
 using namespace std;
 

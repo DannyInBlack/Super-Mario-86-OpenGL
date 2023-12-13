@@ -7,8 +7,6 @@
 #include <windows.h>
 #endif
 
-#include <iostream>
-
 #include "render.hpp"
 
 #define BLACK 0, 0, 0
