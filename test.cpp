@@ -6,11 +6,7 @@ using namespace std;
 // ID: 211010447
 
 // Easy to access colors
-#define SKY_BLUE 161, 173, 255
-#define CLOUD_BLUE 40, 217, 255
-#define BUSH_GREEN 197, 226, 48
-#define BUSH_DARK_GREEN 60, 182, 0
-#define CLOUD_WHITE 255, 255, 255
+
 
 // Pos(24 * 16)
 
@@ -23,7 +19,6 @@ using namespace std;
 
 // Variables used for animation
 double cloudA1 = 30, cloudA2 = 60, cloudA3 = 345;
-int starA4 = 0;
 double playerX = 6 * B_SIZE + 8, playerY = 2 * B_SIZE;
 bool rightPressed = false, leftPressed = false, upPressed = false;
 bool onGround = true;
@@ -170,73 +165,6 @@ void draw_fuzz(double x, double y, int repitions, bool cloud) {
   cloud_end(x, y, cloud);
 }
 
-// Hill scenery that (look like) far away trees
-void draw_hill_scenery(int x, int y) {
-  glColor3ub(BLACK);
-  glRectd(x, y, x + 2, y + 4);
-  glRectd(x + 3, y + 3, x + 6, y + 7);
-  glRectd(x + 4, y + 2, x + 5, y + 8);
-}
-
-// Hill in background
-void draw_hill(int x, int y) {
-  for (int i = 0; i < 32; i++) {
-    glColor3ub(BLACK);
-    glRectd(x - 40 + i, y + i, x + 40 - i, y + i + 1);
-    glColor3ub(BUSH_DARK_GREEN);
-    glRectd(x - 40 + i + 1, y + i, x + 40 - i - 1, y + i + 1);
-  }
-  glColor3ub(BLACK);
-  glRectd(x - 8, y + 32, x - 6, y + 33);
-  glRectd(x - 6, y + 33, x - 3, y + 34);
-  glRectd(x - 3, y + 34, x + 3, y + 35);
-  glRectd(x + 3, y + 33, x + 6, y + 34);
-  glRectd(x + 6, y + 32, x + 8, y + 33);
-
-  glColor3ub(BUSH_DARK_GREEN);
-  glRectd(x - 6, y + 32, x + 6, y + 33);
-  glRectd(x - 3, y + 33, x + 3, y + 34);
-
-  draw_hill_scenery(x - 20, y + 8);
-  draw_hill_scenery(x + 10, y + 8);
-  draw_hill_scenery(x, y + 25);
-}
-
-// 5 point rotating star, where r represents the radius of the star to the
-// surrounding
-void draw_star(double x, double y, double r) {
-  glColor3ub(PLAYER_RED);
-
-  glBegin(GL_POLYGON);
-  for (int i = 0, j = starA4; i < 5; i++, j += 72) {
-    double cx = sin(j * M_PI / 180) * r;
-    double cy = cos(j * M_PI / 180) * r;
-    glVertex2d(cx + x, cy + y);
-
-    cx = sin((j + 36) * M_PI / 180) * (r + r * 1.5);
-    cy = cos((j + 36) * M_PI / 180) * (r + r * 1.5);
-
-    glVertex2d(cx + x, cy + y);
-  }
-  glEnd();
-
-  glColor3ub(YELLOW);
-  r -= 1;
-
-  glBegin(GL_POLYGON);
-  for (int i = 0, j = starA4; i < 5; i++, j += 72) {
-    double cx = sin(j * M_PI / 180) * r;
-    double cy = cos(j * M_PI / 180) * r;
-    glVertex2d(cx + x, cy + y);
-
-    cx = sin((j + 36) * M_PI / 180) * (r + r * 1.5);
-    cy = cos((j + 36) * M_PI / 180) * (r + r * 1.5);
-
-    glVertex2d(cx + x, cy + y);
-  }
-  glEnd();
-}
-
 void display(void) {
   glClear(GL_COLOR_BUFFER_BIT);
   glLoadIdentity();
@@ -246,11 +174,6 @@ void display(void) {
   glColor3ub(SKY_BLUE);
   glRectd(0, 0, 383, 255);
 
-  // level1.clear_entities();
-
-  // Moving the player left and right
-  // level1.edit_player(playerX, playerY);
-
   // Clouds
   draw_fuzz(cloudA1, 200, 3, true);
   draw_fuzz(cloudA2, 100, 1, true);
@@ -258,13 +181,6 @@ void display(void) {
 
   // Bush
   draw_fuzz(9 * B_SIZE, B_SIZE + 8, 3, false);
-
-  // Hills
-  draw_hill(21, 2 * B_SIZE);
-  draw_hill(235, B_SIZE);
-
-  // Rotation
-  draw_star( 10 * B_SIZE, 6 * B_SIZE + 8, 3);
 
   // Mushrooms
 
@@ -295,7 +211,6 @@ void timer(int) {
   cloudA1 < 400 ? cloudA1 += 0.1 : cloudA1 = -100;
   cloudA2 < 400 ? cloudA2 += 0.2 : cloudA2 = -100;
   cloudA3 < 400 ? cloudA3 += 0.1 : cloudA3 = -100;
-  starA4 = (starA4 + 1) % 360;
 
   if (upPressed && onGround) moveStateY = 10.0;
   offset = playerX;
@@ -376,7 +291,7 @@ void timer(int) {
   else centered &= !level1.check_left_border(offset - playerX);
 
   if (centered) {
-    level1.move_blocks(offset - playerX);
+    level1.move_objects(offset - playerX);
     playerX = offset;
     level1.edit_player(playerX, playerY);
   }
@@ -494,6 +409,10 @@ int main(int argc, char **argv) {
   level1.add_block(new LuckyBlock(20 * B_SIZE - 8, 9 * B_SIZE));
 
   level1.set_player(new Player(playerX, playerY));
+
+  level1.add_scenery(new Star(10 * B_SIZE, 6 * B_SIZE + 8, 3, 0));
+  level1.add_bg_scenery(new Hill(21, 2 * B_SIZE));
+  level1.add_bg_scenery(new Hill(235, B_SIZE));
 
   glutMainLoop();
 

@@ -1,18 +1,4 @@
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#ifdef __linux__
-#else
-#include <stdlib.h>
-#include <windows.h>
-#endif
-
 #include "render.hpp"
-
-#define BLACK 0, 0, 0
-#define WHITE 255, 213, 207
-#define BROWN 222, 89, 24
-#define YELLOW 255, 192, 123
 
 /**
  * Defines Blocks that have hitbox and are Renderable

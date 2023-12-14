@@ -2,10 +2,6 @@
 
 #include "render.hpp"
 
-#define MUD 153, 131, 11
-#define PLAYER_RED 248, 71, 29
-#define YELLOW 255, 192, 123
-
 class Entity : public Renderable {
  protected:
   double left = 0, right = 0, up = 0, bottom = 0;

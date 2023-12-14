@@ -1,12 +1,9 @@
 
 #include "blocks.hpp"
 #include "entity.hpp"
+#include "scenery.hpp"
 using namespace std;
 
-class Star : public Renderable {
- public:
-  void render() {}
-};
 
 class Level {
  private:
@@ -15,6 +12,8 @@ class Level {
       blocks;  // TODO: Implement as grid for constant time complexity when
                // searching for collisions
   vector<unique_ptr<Entity>> entities;
+  vector<unique_ptr<Scenery>> scenery;
+  vector<unique_ptr<Scenery>> bg_scenery;
   unique_ptr<Player> player;
   int w;
   int h;
@@ -37,7 +36,7 @@ class Level {
     }
   }
 
-  void move_blocks(double x) {
+  void move_objects(double x) {
     taken = vector<vector<bool>>(w, vector<bool>(h));
 
     for (auto &block : blocks) {
@@ -48,6 +47,10 @@ class Level {
           if (i < w && i >= 0 && j < h && j >= 0) taken[i][j] = 1;
         }
       }
+    }
+
+    for(auto &scene : scenery){
+      scene->move_scene(x + scene->getX());
     }
   }
 
@@ -131,7 +134,20 @@ class Level {
 
   void edit_player(double x, double y) { player->set_player_xy(x, y); }
 
+  void add_scenery(Scenery *bg){
+    scenery.push_back(unique_ptr<Scenery>(bg));
+  }
+  void add_bg_scenery(Scenery *bg){
+    bg_scenery.push_back(unique_ptr<Scenery>(bg));
+  }
+
   void render() {
+    for (unique_ptr<Scenery> &sc : bg_scenery){
+      sc->render();
+    }
+    for (unique_ptr<Scenery> &sc : scenery){
+      sc->render();
+    }
     for (unique_ptr<Block> &block : blocks) {
       block->render();
     };
