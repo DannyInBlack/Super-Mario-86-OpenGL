@@ -3,13 +3,8 @@ using namespace std;
 
 // 2D Project: Computer Graphics CS352
 // Made by: Danial Sabry
-// ID: 211010447
-
-// Easy to access colors
-
 
 // Pos(24 * 16)
-
 #define B_SIZE 16  // Blocks are 16 * 16
 
 // Window parameters
@@ -287,10 +282,17 @@ void timer(int) {
     moveStateY = max(moveStateY - 0.2, -10.0);
   }
 
-  if (!centered) centered |= playerX > 186;
-  else centered &= !level1.check_left_border(offset - playerX);
+  centered |= playerX > 186 && playerX < 189;
+
+  if(offset - playerX > 0){
+    centered &= level1.check_left_border();
+  }
+  else{
+    centered &= level1.check_right_border();
+  }
 
   if (centered) {
+    printf("centered ?\n");
     level1.move_objects(offset - playerX);
     playerX = offset;
     level1.edit_player(playerX, playerY);

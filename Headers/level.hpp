@@ -1,9 +1,7 @@
-
 #include "blocks.hpp"
 #include "entity.hpp"
 #include "scenery.hpp"
 using namespace std;
-
 
 class Level {
  private:
@@ -17,7 +15,7 @@ class Level {
   unique_ptr<Player> player;
   int w;
   int h;
-  double border = 1;
+  double left_border = 0, right_border = 600;
 
  public:
   Level(int w, int h) {
@@ -38,10 +36,11 @@ class Level {
 
   void move_objects(double x) {
     taken = vector<vector<bool>>(w, vector<bool>(h));
+    left_border += x;
+    right_border += x;
 
     for (auto &block : blocks) {
       block->move_block(x + block->getX());
-      border += x;
       for (int i = block->getX(); i < block->getX() + 16; i++) {
         for (int j = block->getY(); j < block->getY() + 16; j++) {
           if (i < w && i >= 0 && j < h && j >= 0) taken[i][j] = 1;
@@ -49,12 +48,19 @@ class Level {
       }
     }
 
-    for(auto &scene : scenery){
+    for (auto &scene : scenery) {
       scene->move_scene(x + scene->getX());
     }
   }
 
-  bool check_left_border(double x) { return (border + x > -1.0); }
+  bool check_left_border() { 
+    printf("LEFT BORDER = %lf\n", left_border);
+    return left_border <= 0; 
+  }
+  bool check_right_border() { 
+    printf("RIGHT BORDER = %lf\n", right_border);
+    return right_border > 383; 
+  }
 
   void add_entity(Entity *entity) {
     entities.push_back(unique_ptr<Entity>(entity));
@@ -134,18 +140,16 @@ class Level {
 
   void edit_player(double x, double y) { player->set_player_xy(x, y); }
 
-  void add_scenery(Scenery *bg){
-    scenery.push_back(unique_ptr<Scenery>(bg));
-  }
-  void add_bg_scenery(Scenery *bg){
+  void add_scenery(Scenery *bg) { scenery.push_back(unique_ptr<Scenery>(bg)); }
+  void add_bg_scenery(Scenery *bg) {
     bg_scenery.push_back(unique_ptr<Scenery>(bg));
   }
 
   void render() {
-    for (unique_ptr<Scenery> &sc : bg_scenery){
+    for (unique_ptr<Scenery> &sc : bg_scenery) {
       sc->render();
     }
-    for (unique_ptr<Scenery> &sc : scenery){
+    for (unique_ptr<Scenery> &sc : scenery) {
       sc->render();
     }
     for (unique_ptr<Block> &block : blocks) {

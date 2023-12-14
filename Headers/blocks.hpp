@@ -1,7 +1,7 @@
 #include "render.hpp"
 
 /**
- * Defines Blocks that have hitbox and are Renderable
+ * Defines Blocks that have hitboxes and are Renderable
  * Each type of block is defined below
  */
 
