@@ -24,6 +24,21 @@ class Level {
     this->h = h;
   }
 
+  Level(Level &&l) {
+    // *this = move(l);
+    taken = move(l.taken);
+    blocks = move(l.blocks);
+    entities = move(l.entities);
+    scenery = move(l.scenery);
+    bg_scenery = move(l.bg_scenery);
+    player = move(l.player);
+
+    w = l.w;
+    h = l.h;
+    left_border = l.left_border;
+    right_border = l.right_border;
+  }
+
   void add_block(Block *block) {
     blocks.push_back(unique_ptr<Block>(block));
 
@@ -40,6 +55,7 @@ class Level {
     right_border += x;
 
     for (auto &block : blocks) {
+      // block.get()->move_block(2);
       block->move_block(x + block->getX());
       for (int i = block->getX(); i < block->getX() + 16; i++) {
         for (int j = block->getY(); j < block->getY() + 16; j++) {
@@ -53,14 +69,8 @@ class Level {
     }
   }
 
-  bool check_left_border() { 
-    printf("LEFT BORDER = %lf\n", left_border);
-    return left_border <= 0; 
-  }
-  bool check_right_border() { 
-    printf("RIGHT BORDER = %lf\n", right_border);
-    return right_border > 383; 
-  }
+  bool check_left_border() { return left_border <= 0; }
+  bool check_right_border() { return right_border > 383; }
 
   void add_entity(Entity *entity) {
     entities.push_back(unique_ptr<Entity>(entity));
@@ -153,7 +163,7 @@ class Level {
       sc->render();
     }
     for (unique_ptr<Block> &block : blocks) {
-      block->render();
+      if (block->getX() + 16 >= 0 || block->getX() < 384) block->render();
     };
     for (unique_ptr<Entity> &entity : entities) {
       entity->render();
