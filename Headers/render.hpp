@@ -4,11 +4,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-#ifdef __linux__
-#else
-#include <stdlib.h>
-#include <windows.h>
-#endif
 
 #include <algorithm>
 #include <cmath>
