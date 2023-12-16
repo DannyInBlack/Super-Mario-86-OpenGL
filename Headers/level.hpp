@@ -39,6 +39,9 @@ class Level {
     right_border = l.right_border;
   }
 
+  // Level& operator=(Level&);
+  // Level& operator=(Level&&);
+
   void add_block(Block *block) {
     blocks.push_back(unique_ptr<Block>(block));
 
@@ -163,7 +166,7 @@ class Level {
       sc->render();
     }
     for (unique_ptr<Block> &block : blocks) {
-      if (block->getX() + 16 >= 0 || block->getX() < 384) block->render();
+      if (block->getX() + 16 >= 0 || block->getX() < w) block->render();
     };
     for (unique_ptr<Entity> &entity : entities) {
       entity->render();

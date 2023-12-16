@@ -4,6 +4,8 @@ using namespace std;
 // 2D Project: Computer Graphics CS352
 // Made by: Danial Sabry
 
+// stdc++ = 14 and above
+
 // Pos(24 * 16)
 #define B_SIZE 16  // Blocks are 16 * 16
 
@@ -12,21 +14,25 @@ using namespace std;
 #define WINDOW_NAME "211010447"
 #define WINDOW_POSITION 200, 0
 
-// Variables used for animation
-double cloudA1 = 30, cloudA2 = 60, cloudA3 = 345;
+// Player X and Player Y represent player coordinates on the screen
 double playerX = 6 * B_SIZE + 8, playerY = 2 * B_SIZE;
+// Represents key inputs from user
 bool rightPressed = false, leftPressed = false, upPressed = false;
+// Player on-ground state, helps with other logic
 bool onGround = true;
+// If game is paused, paused = true
 bool paused = false;
+// If player is centered, level moves instead of player
 bool centered = false;
+// Offset is used to determine how much the player had moved in the last frame
+double offset = playerX;
+
 double moveStateX = 0;  // moving state, represents movement in the x-direction
 double moveStateY = 0;  // moving state, represents movement in the y-direction
-double offset = 6 * B_SIZE + 8;
 
-// Level level1(384, 256);  // First Level
-// Level level2(384, 256);  // Second Level
-
+// List of levels implemented
 vector<Level> levels;
+// Index of the current level
 int current_level = 0;
 
 void display(void) {
@@ -56,19 +62,30 @@ void display(void) {
 }
 
 void timer(int) {
-  // Clouds move at seperate speeds
+  // Call the display function
   glutPostRedisplay();
+  // 60 frames per second
   glutTimerFunc(1000 / 60, timer, 0);
-
+  // Do not handle player movement if paused
   if (paused) return;
 
+  // Player can only jump if touching the ground
   if (upPressed && onGround) moveStateY = 10.0;
+
+  // Setting offset to past playerX value, to calculate the difference
   offset = playerX;
 
+  // 0.2 is a multiplier
   playerX += 0.2 * moveStateX;
 
+  // Move player to check for collisions in the x-direction
   levels[current_level].edit_player(playerX, playerY);
 
+  /**
+   * If there is a collision in the x-direction, keep moving player in the
+   * opposite direction until there is no more collision. Stop movement in
+   * either case.
+   */
   if (levels[current_level].right_coll()) {
     moveStateX = 0;
     playerX = ceil(playerX);
@@ -91,6 +108,11 @@ void timer(int) {
     }
   }
 
+  /**
+   * Accelerate or deaccelerate according to the buttons pressed. There must be
+   * no blocks in the direction of acceleration as well. Sets player animation
+   * state to face the direction of movement.
+   */
   if ((!rightPressed && !leftPressed || leftPressed && rightPressed) &&
       moveStateX != 0) {
     moveStateX = moveStateX > 0 ? max(moveStateX - 0.5, 0.0)
@@ -105,6 +127,7 @@ void timer(int) {
     levels[current_level].set_player_state(stopped);
   }
 
+  // Repeat the same thing for the Y direction
   playerY += 0.3 * moveStateY;
   levels[current_level].edit_player(playerX, playerY);
 
@@ -129,28 +152,41 @@ void timer(int) {
     }
   }
 
+  // Check if player is floating or not
   if (!levels[current_level].future_ground_coll()) {
-    onGround = 0;
+    onGround = false;
   }
 
+  // Accelerate in the y-direction (acts like gravity)
   if (!onGround) {
     moveStateY = max(moveStateY - 0.2, -10.0);
   }
 
+  // Centered checking
   centered |= playerX > 186 && playerX < 189;
 
+  // centered = 1, &= 1 && leftborder ! inside level
+  // Player cannot be centered while the level borders are inside
   if (offset - playerX > 0) {
     centered &= levels[current_level].check_left_border();
   } else {
     centered &= levels[current_level].check_right_border();
   }
 
+  /**
+   * Centered controls whether the player moves or the level moves. If the
+   * player is centered, then the level moves the same amount the player moved
+   * but in the opposite direction. This is where offset is used, to see how
+   * much the player moved and then subtract the current playerX position to get
+   * the negative vector.
+   */
   if (centered) {
     levels[current_level].move_objects(offset - playerX);
     playerX = offset;
     levels[current_level].edit_player(playerX, playerY);
   }
 
+  // Once the player is close to the border, try to move the next level
   if (playerX >= 370 && current_level + 1 < levels.size()) {
     playerX = 3;
     current_level++;
@@ -169,8 +205,8 @@ void reshape(int w, int h) {
   glMatrixMode(GL_MODELVIEW);
 }
 
-// Handles button presses, still needs the up-movement
-// Boolean variable used for smooth movement
+// Handles button presses
+// Boolean variables used for smooth movement
 void handle_movement(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_UP:
@@ -213,7 +249,6 @@ void keyboard_movement(unsigned char key, int x, int y) {
   }
 }
 
-// Handles buttons releases
 void keyboard_no_movement(unsigned char key, int x, int y) {
   switch (key) {
     case 'w':
@@ -228,12 +263,14 @@ void keyboard_no_movement(unsigned char key, int x, int y) {
   }
 }
 
+// On mouse left-button click, pause
 void on_mouse_click(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     paused = !paused;
   }
 }
 
+// Setting up first level
 void first_level() {
   levels.push_back(Level(384, 256));
   for (int i = -8, j = 0; j < 50; i += B_SIZE, j++) {
@@ -263,6 +300,7 @@ void first_level() {
   levels[0].add_bg_scenery(new Cloud(345, 225, 1, true, 0.1));
 }
 
+// Setting up second level
 void second_level() {
   levels.push_back(Level(384, 256));
 
@@ -274,6 +312,7 @@ void second_level() {
   }
 
   levels[1].add_bg_scenery(new Cloud(350, 225, 2, true, 0.5));
+  levels[1].add_scenery(new Star(100, 100, 3, 0));
 }
 
 int main(int argc, char **argv) {
@@ -293,10 +332,6 @@ int main(int argc, char **argv) {
   glutKeyboardFunc(keyboard_movement);
   glutKeyboardUpFunc(keyboard_no_movement);
   glutMouseFunc(on_mouse_click);
-
-  // glClearColor(161 / 253, 173 / 253, 255 / 253, 1);
-
-  // Adding the level blocks
 
   first_level();
   second_level();
