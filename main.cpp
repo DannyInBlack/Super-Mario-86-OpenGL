@@ -246,6 +246,8 @@ void keyboard_movement(unsigned char key, int x, int y) {
     case 'a':
       leftPressed = true;
       break;
+    case 'q':
+      exit(0);
   }
 }
 
