@@ -1,5 +1,5 @@
 # CS352 Project (UNI) : OpenGL
-This repo attempts at recreating Super Mario (64) in OpenGL from scratch!
+This repo attempts at recreating Super Mario (1986) in OpenGL from scratch!
 
 ## Getting Started
 This project was created for Ubuntu Linux and so some of the requirements and functionality might change on other operating systems.
